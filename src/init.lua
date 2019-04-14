@@ -6,6 +6,7 @@ function startup()
 	dofile("laser.lua")
 	dofile("buzzer.lua")
 	dofile("sensor.lua")
+	dofile("network-api.lua")
 	dofile("app.lua")
 end
 

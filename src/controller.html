@@ -1,0 +1,162 @@
+<html>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<style>
+		button {
+			width: 100%;
+			margin: 5px 5px;
+			height: 40px;
+			border: 1px solid black;
+			font-size: 20px;
+			border-radius: 10px;
+		}
+		.stop {
+			width: 30%;
+			height: 140px;
+		}
+		.row {
+			display: flex;
+			flex-direction: row;
+		}
+		.col {
+			display: flex;
+			flex-flow:wrap;
+			height: 80px;
+		}
+		.text {
+    	width: 100%;
+	    height: 40px;
+	    line-height: 50px;
+	    font-size: 20px;
+	    text-align: center;
+		}
+		.green {
+			background-color: greenyellow;
+		}
+		.red {
+			background-color: darkorange;
+		}
+		.color1 {
+			background-color: aquamarine;
+		}
+		.color2 {
+			background-color: aqua;
+		}
+		label {
+			padding: 10px 20px;
+		}
+		input {
+			border: 1px solid black;
+			font-size: 20px;	
+		}
+		.m2 { 
+			margin: 10px 0;
+		}
+	</style>
+
+	<script type="text/javascript">
+		function clickLeft(x) {
+			httpGetAsync('/motor/bwd/' + x);
+		}
+
+		function clickRight(x) {
+			httpGetAsync('/motor/fwd/' + x);
+		}
+
+		function clickMotorStop() {
+			httpGetAsync('/motor/stop');
+		}
+
+		function clickBeeper() {
+			httpGetAsync('/buzzer/mute');
+		}
+
+		function clickLaser() {
+			httpGetAsync('/laser/power');
+		}
+
+		function clickStart() {
+			httpGetAsync('/app/start');
+		}
+
+		function clickStop() {
+			httpGetAsync('/app/stop');
+		}
+
+		function clickWiFi() {
+			const ssid = document.getElementById('ssid').value;
+			const password = document.getElementById('password').value;
+			httpGetAsync('/wifi/' + ssid + '/' + password);
+			document.getElementById('deviceIP').innerHTML = "requesting ip..."
+			setTimeout(getDeviceIP, 3000);
+		}
+
+		function getDeviceIP() {
+			httpGetAsync('/wifi-ip', function(result) {
+				const res = JSON.parse(result);
+				console.log('wifiip:', res);
+				if (!res.result) {
+					setTimeout(getDeviceIP, 3000);
+					return
+				}
+				document.getElementById('deviceIP').innerHTML = res.result;
+				document.getElementById('deviceIP').setAttribute('href', 'http://' + res.result);
+			});
+		}
+
+		function httpGetAsync(theUrl, callback) {
+			var xmlHttp = new XMLHttpRequest();
+			xmlHttp.onreadystatechange = function() {
+				if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+					callback && callback(xmlHttp.responseText);
+				}
+			}
+		  xmlHttp.open("GET", theUrl, true); // true for asynchronous
+		  xmlHttp.send(null);
+		}
+	</script>
+
+	<div class="row">
+		<div class="text">TUBES MACHINE</div>
+	</div>
+	<hr>
+	<div class="row">
+		<div class="col">
+			<button class="color1" onClick="clickLeft(1)">LEFT</button>
+			<button class="color1" onClick="clickLeft(10)">10x</button>
+			<button class="color1" onClick="clickLeft(100)">100x</button>
+		</div>
+		<button class="stop red" onClick="clickMotorStop()">STOP</button>
+		<div class="col">
+			<button class="color2" onClick="clickRight(1)">RIGHT</button>
+			<button class="color2" onClick="clickRight(10)">10x</button>
+			<button class="color2" onClick="clickRight(100)">100x</button>
+		</div>
+	</div>
+	<hr>
+	<div class="row">
+		<button onClick="clickBeeper()">BEEPER ON/OFF</button>
+	</div>
+	<div class="row">
+		<button onClick="clickLaser()">LASER ON/OFF</button>
+	</div>
+	<hr>
+	<div class="row">
+		<button class="green" onClick="clickStart()">START PROGRAM</button>
+	</div>
+	<div class="row">
+		<button class="red" onClick="clickStop()">STOP PROGRAM</button>
+	</div>
+	<hr>
+	<div class="row m2">
+		<label>SSID</label><input id="ssid" type="text"/>
+	</div>
+	<div class="row">
+		<label>PWD</label><input id="password" type="text"/>
+	</div>
+	<div class="row">
+		<a href="" class="text" id="deviceIP"></a>
+	</div>
+	<div class="row m2">
+		<button onClick="clickWiFi()">CONNECT TO WIFI</button>
+	</div>
+</html>

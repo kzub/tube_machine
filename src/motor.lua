@@ -5,7 +5,7 @@ local wire3 = 3
 local wire4 = 4
 local button = 5
 
-local _motorStep = 50
+local _buttonStep = 50
 local _delayBetweenSteps = 25 -- ms
 
 gpio.mode(wire1, gpio.OUTPUT)--set four wires as output
@@ -23,9 +23,11 @@ end
 
 local mRun = 0
 local mRunTicks = 0
+local callbackWhenDone = nil
 
 -- PUBLIC
-function motorStep(count)
+function motorStep(count, callback)
+  callbackWhenDone = callback
   if count > 0 then
     if mRunTicks < 0 then -- reset if opposite direction
       mRunTicks = 0
@@ -45,7 +47,7 @@ end
 -- PRIVATE
 function mCheckRun()
   if gpio.read(button) == 0 then 
-    mRunTicks = _motorStep
+    mRunTicks = _buttonStep
   end
 
   if mRunTicks > 0 then
@@ -56,6 +58,12 @@ function mCheckRun()
   if mRunTicks < 0 then
     mRunTicks = mRunTicks + 1
     return -1
+  end
+
+  if callbackWhenDone ~= nil then
+    local cbCopy = callbackWhenDone
+    callbackWhenDone = nil
+    cbCopy()
   end
 
   return 0

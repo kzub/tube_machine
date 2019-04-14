@@ -1,5 +1,7 @@
 print("Loading sensor.lua") 
 
+local _lowLevel = 180
+
 if adc == nil then
   print("ERROR: NO ADC CONFIGURED")
 else
@@ -8,11 +10,11 @@ else
     node.restart()
   end
 
-  print("ADC value:", adc.read(0))
+  print("Sensor value:", adc.read(0))
 end
 
 function isSensorLight ()
   local val = adc.read(0)
-  print("sensor:", val)
-  return true
+  -- print("isSensorLight:", val <= _lowLevel, val)
+  return val <= _lowLevel
 end
