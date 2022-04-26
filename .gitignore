@@ -1,3 +1,4 @@
-*.sublime-project
 *.sublime-workspace
 credentials.lua
+.DS_Store
+

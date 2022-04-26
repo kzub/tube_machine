@@ -1,16 +1,18 @@
-print("Loading app.lua") 
+print("Loading app.lua")
 
 -- constants
-local _delayBetweenChecks = 200
+local _delayBetweenChecks = 100
 local _sensorFailsToDoStep = 5
-local _motorStepsPerTube = 201 -- ~5631 steps for 360 turnover
-local _tubesMaxPos = 28
+local _motorStepsPerTube = 201 -- ~5633 steps for 360 turnover
+local _tubesMaxPos = 28 --
 
 local programmWorks = false
 local sensorFailsCount = 0
 local tubesCurPos = 1
 local wip = false
-
+---------------------------------------------------------------------------------
+-- ставим что-то тонкое и замеряем сколько шагов двигателя занимает полный оборот
+---------------------------------------------------------------------------------
 local circleCounts = 0
 
 function measureCircle ()
@@ -21,7 +23,7 @@ function measureCircle ()
   measureCircleStep1()
 end
 
-function measureCircleStep1 () 
+function measureCircleStep1 ()
   if isSensorLight() == true then
     motorStep(1, measureCircleStep1)
   else
@@ -30,7 +32,7 @@ function measureCircleStep1 ()
   end
 end
 
-function measureCircleStep2 () 
+function measureCircleStep2 ()
   if isSensorLight() == false then
       circleCounts = circleCounts + 1
       motorStep(1, measureCircleStep2)
@@ -50,11 +52,11 @@ function measureCircleStep3 ()
     laserOff()
     print("full cirlce length:", circleCounts)
     print("tubes:", _tubesMaxPos)
-    print("per tube:", circleCounts/_tubesMaxPos)
+    print("per tube:", circleCounts / _tubesMaxPos)
   end
 end
-
-function startProgram() 
+---------------------------------------------------------------------------------
+function startProgram()
 	laserOn()
   buzzerBeep()
 	sensorFailsCount = 0
@@ -62,11 +64,12 @@ function startProgram()
 	programmWorks = true
 end
 
-function stopProgram() 
+function stopProgram()
 	programmWorks = false
 	laserOff()
 	buzzerOff()
 end
+---------------------------------------------------------------------------------
 
 --  loop routine
 tmr.create():alarm(_delayBetweenChecks, tmr.ALARM_AUTO, function()
@@ -83,10 +86,15 @@ tmr.create():alarm(_delayBetweenChecks, tmr.ALARM_AUTO, function()
 
   if (sensorFailsCount >= _sensorFailsToDoStep) and (tubesCurPos < _tubesMaxPos) then
   	print("switch to next tube:", tubesCurPos + 1)
+    grabberOn()
   	buzzerBeep()
     wip = true
-  	motorStep(_motorStepsPerTube, function ()
-      wip = false
+
+    tmr.create():alarm(1200, tmr.ALARM_SINGLE, function()
+    	motorStep(_motorStepsPerTube, function ()
+        wip = false
+        grabberOff()
+      end)
     end)
   	sensorFailsCount = 0
   	tubesCurPos = tubesCurPos + 1
@@ -94,7 +102,12 @@ tmr.create():alarm(_delayBetweenChecks, tmr.ALARM_AUTO, function()
 
   if tubesCurPos >= _tubesMaxPos then
   	print("buzzer on for last tube:", tubesCurPos)
+    grabberOn()
   	buzzerOn()
+    laserOff()
+    wip = true
   end
 
 end)
+
+---------------------------------------------------------------------------------

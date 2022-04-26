@@ -1,4 +1,4 @@
-print("Loading buzzer.lua") 
+print("Loading buzzer.lua")
 
 local wireBuzzer = 0
 local isBuzzing = false
@@ -7,7 +7,7 @@ local buzMuted = false
 gpio.mode(wireBuzzer, gpio.OUTPUT)
 
 function buzzerOn ()
-	if buzMuted then 
+	if buzMuted then
 		return
 	end
 	isBuzzing = true
@@ -20,9 +20,9 @@ function buzzerOff ()
 end
 
 function buzzerMute ()
-	if buzMuted then 
-		buzMuted = false 
-	else 
+	if buzMuted then
+		buzMuted = false
+	else
 		buzMuted = true
 		buzzerOff()
 	end
@@ -33,8 +33,8 @@ function buzzerBeep ()
 		return
 	end
 	buzzerOn()
-  tmr.create():alarm(200, tmr.ALARM_SINGLE, function()
-	  buzzerOff()
+ 	tmr.create():alarm(200, tmr.ALARM_SINGLE, function()
+		buzzerOff()
 	end)
 end
 

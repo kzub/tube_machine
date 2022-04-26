@@ -46,9 +46,9 @@
 		}
 		input {
 			border: 1px solid black;
-			font-size: 20px;	
+			font-size: 20px;
 		}
-		.m2 { 
+		.m2 {
 			margin: 10px 0;
 		}
 	</style>
@@ -73,7 +73,9 @@
 		function clickLaser() {
 			httpGetAsync('/laser/power');
 		}
-
+		function clickGrabber () {
+			httpGetAsync('/grabber/change');
+		}
 		function clickStart() {
 			httpGetAsync('/app/start');
 		}
@@ -138,6 +140,9 @@
 	</div>
 	<div class="row">
 		<button onClick="clickLaser()">LASER ON/OFF</button>
+	</div>
+	<div class="row">
+		<button onClick="clickGrabber()">GRABBER ON/OFF</button>
 	</div>
 	<hr>
 	<div class="row">

@@ -1,6 +1,6 @@
-local data="/wifi/OpenNet2/ugadayugaday2 HTTP"
+local data="/wifi/SSID/password HTTP"
 
-function sendData(sck, data, pos, callback) 
+function sendData(sck, data, pos, callback)
 	local dataEnd = pos + 4
 	print(string.sub(data, pos, dataEnd))
 

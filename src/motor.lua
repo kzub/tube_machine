@@ -1,32 +1,43 @@
-print("Loading motor.lua") 
+print("Loading motor.lua")
 local wire1 = 1
 local wire2 = 2
 local wire3 = 3
 local wire4 = 4
-local button = 5
 
-local _buttonStep = 50
-local _delayBetweenSteps = 25 -- ms
+local _delayBetweenSteps = 15 -- ms
 
 gpio.mode(wire1, gpio.OUTPUT)--set four wires as output
 gpio.mode(wire2, gpio.OUTPUT)
 gpio.mode(wire3, gpio.OUTPUT)
 gpio.mode(wire4, gpio.OUTPUT)
-gpio.mode(button, gpio.INPUT, gpio.PULLUP)
 
-function sequence(a, b, c, d)--four step sequence to stepper motor
+local mRun = 0
+local mRunTicks = 0
+local callbackWhenDone = nil
+
+local seqNum = 0;
+function seqInc ()
+  seqNum = seqNum + 1
+  if seqNum > 4 then
+    seqNum = 1
+  end
+  return seqNum
+end
+
+function sequence(sn, a, b, c, d)--four step sequence to stepper motor
+  if seqNum ~= sn then
+    return
+  end
   gpio.write(wire1, a)
   gpio.write(wire2, b)
   gpio.write(wire3, c)
   gpio.write(wire4, d)
 end
 
-local mRun = 0
-local mRunTicks = 0
-local callbackWhenDone = nil
 
 -- PUBLIC
 function motorStep(count, callback)
+  count = count * 4 -- min motor step
   callbackWhenDone = callback
   if count > 0 then
     if mRunTicks < 0 then -- reset if opposite direction
@@ -46,10 +57,6 @@ end
 
 -- PRIVATE
 function mCheckRun()
-  if gpio.read(button) == 0 then 
-    mRunTicks = _buttonStep
-  end
-
   if mRunTicks > 0 then
     mRunTicks = mRunTicks - 1
     return 1
@@ -70,40 +77,43 @@ function mCheckRun()
 end
 
 function mBackwardStep ()
-  sequence(gpio.HIGH, gpio.LOW, gpio.LOW, gpio.LOW)
-  sequence(gpio.HIGH, gpio.HIGH, gpio.LOW, gpio.LOW)
-  sequence(gpio.LOW, gpio.HIGH, gpio.LOW, gpio.LOW)
-  sequence(gpio.LOW, gpio.HIGH, gpio.HIGH, gpio.LOW)
-  sequence(gpio.LOW, gpio.LOW, gpio.HIGH, gpio.LOW)
-  sequence(gpio.LOW, gpio.LOW, gpio.HIGH, gpio.HIGH)
-  sequence(gpio.LOW, gpio.LOW, gpio.LOW, gpio.HIGH)
-  sequence(gpio.HIGH, gpio.LOW, gpio.LOW, gpio.HIGH)
+  sequence(1, gpio.HIGH, gpio.LOW,  gpio.LOW,  gpio.LOW)
+  -- sequence(gpio.HIGH, gpio.HIGH, gpio.LOW,  gpio.LOW)
+  sequence(2, gpio.LOW,  gpio.HIGH, gpio.LOW,  gpio.LOW)
+  -- sequence(gpio.LOW,  gpio.HIGH, gpio.HIGH, gpio.LOW)
+  sequence(3, gpio.LOW,  gpio.LOW,  gpio.HIGH, gpio.LOW)
+  -- sequence(gpio.LOW,  gpio.LOW,  gpio.HIGH, gpio.HIGH)
+  sequence(4, gpio.LOW,  gpio.LOW,  gpio.LOW,  gpio.HIGH)
+  -- sequence(gpio.HIGH, gpio.LOW,  gpio.LOW,  gpio.HIGH)
 end
 
 function mForwardStep ()
-  sequence(gpio.LOW, gpio.LOW, gpio.LOW, gpio.HIGH)
-  sequence(gpio.LOW, gpio.LOW, gpio.HIGH, gpio.HIGH)
-  sequence(gpio.LOW, gpio.LOW, gpio.HIGH, gpio.LOW)
-  sequence(gpio.LOW, gpio.HIGH, gpio.HIGH, gpio.LOW)
-  sequence(gpio.LOW, gpio.HIGH, gpio.LOW, gpio.LOW)
-  sequence(gpio.HIGH, gpio.HIGH, gpio.LOW, gpio.LOW)
-  sequence(gpio.HIGH, gpio.LOW, gpio.LOW, gpio.LOW)
-  sequence(gpio.HIGH, gpio.LOW, gpio.LOW, gpio.HIGH)
+  sequence(1, gpio.LOW,  gpio.LOW,  gpio.LOW,  gpio.HIGH)
+  -- sequence(gpio.LOW,  gpio.LOW,  gpio.HIGH, gpio.HIGH)
+  sequence(2, gpio.LOW,  gpio.LOW,  gpio.HIGH, gpio.LOW)
+  -- sequence(gpio.LOW,  gpio.HIGH, gpio.HIGH, gpio.LOW)
+  sequence(3, gpio.LOW,  gpio.HIGH, gpio.LOW,  gpio.LOW)
+  -- sequence(gpio.HIGH, gpio.HIGH, gpio.LOW,  gpio.LOW)
+  sequence(4, gpio.HIGH, gpio.LOW,  gpio.LOW,  gpio.LOW)
+  -- sequence(gpio.HIGH, gpio.LOW,  gpio.LOW,  gpio.HIGH)
 end
 
 function mStop ()
-  sequence(gpio.LOW, gpio.LOW, gpio.LOW, gpio.LOW)
+  seqNum = 0
+  sequence(0, gpio.LOW, gpio.LOW, gpio.LOW, gpio.LOW)
 end
 
 -- motor loop routine
 tmr.create():alarm(_delayBetweenSteps, tmr.ALARM_AUTO, function()
   if mRun > 0 then
+    seqInc()
     mForwardStep()
   elseif mRun < 0 then
+    seqInc()
     mBackwardStep()
   else
     mStop()
-  end         
+  end
   mRun = mCheckRun()
 end)
 
